@@ -19,7 +19,7 @@ import java.util.List;
  * </p>
  *
  */
-public final class Node { //implements Comparable<Node> {
+public final class Node implements Comparable<Node>{ //implements Comparable<Node> {
 
     /**
      * <p>
@@ -150,11 +150,13 @@ public final class Node { //implements Comparable<Node> {
      * 
      * @param other Node to compare this node with.
      * 
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     *  @see java.lang.Comparable#compareTo(java.lang.Object) 
      */
-    // @Override
-    // public int compareTo(Node other) {
-    //     return Integer.compare(getId(), other.getId());
-    // }
+     
+    @Override
+    public int compareTo(Node other) {
+         return Integer.compare(getId(), other.getId());
+     }
+    
 
 }
