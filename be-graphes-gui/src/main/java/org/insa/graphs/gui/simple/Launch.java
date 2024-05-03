@@ -1,19 +1,19 @@
 package org.insa.graphs.gui.simple;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
-
 import org.insa.graphs.gui.drawing.Drawing;
 import org.insa.graphs.gui.drawing.components.BasicDrawing;
 import org.insa.graphs.model.Graph;
 import org.insa.graphs.model.Path;
 import org.insa.graphs.model.io.BinaryGraphReader;
+import org.insa.graphs.model.io.BinaryPathReader;
 import org.insa.graphs.model.io.GraphReader;
 import org.insa.graphs.model.io.PathReader;
 
@@ -60,17 +60,34 @@ public class Launch {
         final Drawing drawing = createDrawing();
 
         // TODO: Draw the graph on the drawing.
-        drawing.drawGraph(graph);
+        //drawing.drawGraph(graph);
 
         // TODO: Create a PathReader.
         //final PathReader pathReader = new PathReader(new DataInputStream(new BufferedInputStream(new FileInputStream(pathName))));
-
+     //   final PathReader pathReader = null;
 
         // TODO: Read the path.
         //final Path path = pathReader.readPath(graph);
-
+        //final Path path = null;
         // TODO: Draw the path.
         //drawing.drawPath(path);
-    }
+       // final Graph graph = reader.read();
 
+// Draw the graph on the drawing.
+drawing.drawGraph(graph);
+
+// Create a PathReader.
+try (PathReader pathReader = new BinaryPathReader(new DataInputStream(new BufferedInputStream(new FileInputStream(pathName))))) {
+    // Read the path.
+    final Path path = pathReader.readPath(graph);
+
+    // Draw the path.
+    drawing.drawPath(path);
+} catch (IOException e) {
+    // Handle IOException if it occurs.
+    e.printStackTrace();
+}
+
+
+}
 }

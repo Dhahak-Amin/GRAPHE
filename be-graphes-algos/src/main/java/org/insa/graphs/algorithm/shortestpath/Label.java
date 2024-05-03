@@ -55,6 +55,8 @@ public class Label implements Comparable<Label> {
 
         return this.getCost();
     } 
+
+    
     
     @Override
     public int compareTo(Label autrLabel) {
