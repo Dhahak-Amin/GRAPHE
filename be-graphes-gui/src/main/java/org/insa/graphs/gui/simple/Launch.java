@@ -46,48 +46,29 @@ public class Launch {
     public static void main(String[] args) throws Exception {
 
         // Visit these directory to see the list of available files on Commetud.
-        final String mapName = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/insa.mapgr";
-        final String pathName = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Paths/path_fr31insa_rangueil_r2.path";
+     String mapName = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/insa.mapgr";
+     String pathName = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Paths/path_fr31insa_rangueil_r2.path";
 
         // Create a graph reader.
-        final GraphReader reader = new BinaryGraphReader(
+         GraphReader reader = new BinaryGraphReader(
                 new DataInputStream(new BufferedInputStream(new FileInputStream(mapName))));
 
-        // TODO: Read the graph.
-        final Graph graph = reader.read();
+                Graph graph = reader.read();
+
+                // Create the drawing:
+                Drawing drawing = createDrawing();
         
-        // Create the drawing:
-        final Drawing drawing = createDrawing();
-
-        // TODO: Draw the graph on the drawing.
-        //drawing.drawGraph(graph);
-
-        // TODO: Create a PathReader.
-        //final PathReader pathReader = new PathReader(new DataInputStream(new BufferedInputStream(new FileInputStream(pathName))));
-     //   final PathReader pathReader = null;
-
-        // TODO: Read the path.
-        //final Path path = pathReader.readPath(graph);
-        //final Path path = null;
-        // TODO: Draw the path.
-        //drawing.drawPath(path);
-       // final Graph graph = reader.read();
-
-// Draw the graph on the drawing.
-drawing.drawGraph(graph);
-
-// Create a PathReader.
-try (PathReader pathReader = new BinaryPathReader(new DataInputStream(new BufferedInputStream(new FileInputStream(pathName))))) {
-    // Read the path.
-    final Path path = pathReader.readPath(graph);
-
-    // Draw the path.
-    drawing.drawPath(path);
-} catch (IOException e) {
-    // Handle IOException if it occurs.
-    e.printStackTrace();
-}
-
-
-}
-}
+                // TODO: Draw the graph on the drawing.
+                drawing.drawGraph(graph);
+        
+                // TODO: Create a PathReader.
+                PathReader pathReader = new BinaryPathReader(new DataInputStream(new BufferedInputStream(new FileInputStream(pathName))));
+        
+                // TODO: Read the path.
+                Path path = pathReader.readPath(graph);
+        
+                // TODO: Draw the path.
+                drawing.drawPath(path);
+            }
+        
+        }
