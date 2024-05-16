@@ -1,31 +1,40 @@
 package org.insa.graphs.gui.simple;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-
+import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
+import org.insa.graphs.algorithm.ArcInspector;
+import org.insa.graphs.algorithm.ArcInspectorFactory;
+import org.insa.graphs.algorithm.shortestpath.BellmanFordAlgorithm;
+import org.insa.graphs.algorithm.shortestpath.DijkstraAlgorithm;
+import org.insa.graphs.algorithm.shortestpath.ShortestPathData;
+import org.insa.graphs.algorithm.shortestpath.ShortestPathSolution;
 import org.insa.graphs.gui.drawing.Drawing;
 import org.insa.graphs.gui.drawing.components.BasicDrawing;
 import org.insa.graphs.model.Graph;
-import org.insa.graphs.model.Path;
+import org.insa.graphs.model.Node;
 import org.insa.graphs.model.io.BinaryGraphReader;
-import org.insa.graphs.model.io.BinaryPathReader;
 import org.insa.graphs.model.io.GraphReader;
-import org.insa.graphs.model.io.PathReader;
-
 public class Launch {
 
-    /**
-     * Create a new Drawing inside a JFrame an return it.
-     * 
-     * @return The created drawing.
-     * 
-     * @throws Exception if something wrong happens when creating the graph.
-     */
+    private static Node Origin;
+    private static Node Destination;
+    private static ArcInspector arcInspector;
+    private static ShortestPathData data;
+    private static BellmanFordAlgorithm bellManAlgo;
+    private static DijkstraAlgorithm dijkstraAlgo;
+    private static ShortestPathSolution solutionBellMan;
+    private static ShortestPathSolution solutionDijkstra;
+    private static Graph graphINSA = null;
+    private static Graph graphWashington = null;
+    private static Graph graphBelgium = null;
+
     public static Drawing createDrawing() throws Exception {
         BasicDrawing basicDrawing = new BasicDrawing();
         SwingUtilities.invokeAndWait(new Runnable() {
@@ -43,32 +52,120 @@ public class Launch {
         return basicDrawing;
     }
 
+    public static void initAll() throws Exception {
+
+         String mapINSA = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/insa.mapgr";
+         String mapBelgium = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/belgium.mapgr";
+         String mapWashington = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/washington.mapgr";
+
+        final GraphReader readerINSA = new BinaryGraphReader(
+                new DataInputStream(new BufferedInputStream(new FileInputStream(mapINSA))));
+        final GraphReader readerBelgium = new BinaryGraphReader(
+                new DataInputStream(new BufferedInputStream(new FileInputStream(mapBelgium))));
+        final GraphReader readerWashington = new BinaryGraphReader(
+                new DataInputStream(new BufferedInputStream(new FileInputStream(mapWashington))));
+
+        graphINSA = readerINSA.read();
+        graphBelgium = readerBelgium.read();
+        graphWashington = readerWashington.read();
+    }
+
+    public static void initialize(int Origin_param, int Destination_param, int Road, Graph graph) {
+        Origin = new Node(Origin_param, null);
+        Destination = new Node(Destination_param, null);
+        List<ArcInspector> listInspector = new ArcInspectorFactory().getAllFilters();
+        arcInspector = listInspector.get(Road);
+        data = new ShortestPathData(graph, Origin, Destination, arcInspector);
+        dijkstraAlgo = new DijkstraAlgorithm(data);
+        bellManAlgo = new BellmanFordAlgorithm(data);
+        solutionDijkstra = dijkstraAlgo.run();
+        solutionBellMan = bellManAlgo.run();
+    }
+
     public static void main(String[] args) throws Exception {
+        initAll();
+        // Test cases...
+        initialize(0, 100, 0, graphINSA);
+        System.out.println("Shortest path length from node 0 to node 100 with Dijkstra for INSA: " + solutionDijkstra.getPath().getLength());
+        initialize(0, 100, 0, graphINSA);
+        System.out.println("Shortest path length from node 0 to node 100 with Bellman-Ford for INSA: " + solutionBellMan.getPath().getLength());
 
-        // Visit these directory to see the list of available files on Commetud.
-     String mapName = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/insa.mapgr";
-     String pathName = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Paths/path_fr31insa_rangueil_r2.path";
+    
+  
+        testShortestAllRoads("INSA", graphINSA, 0, 150, 0);
+        testShortestCarsOnly("INSA", graphINSA, 253, 5, 1);
+        testFastestAllRoads("INSA", graphINSA, 0, 500, 2);
+        testFastestCarsOnly("INSA", graphINSA, 0, 500, 2);
+        testRoadCarsNotFound("INSA", graphINSA, 700, 0, 0);
+        testShortestLongDistance("INSA", graphINSA, 143, 600, 0);
+        testShortestShortDistance("INSA", graphINSA, 95, 200, 0);
+    
+        
+  
+    }
 
-        // Create a graph reader.
-         GraphReader reader = new BinaryGraphReader(
-                new DataInputStream(new BufferedInputStream(new FileInputStream(mapName))));
+    public static void testShortestAllRoads(String graphName, Graph graph, int origin, int destination, int road) throws IOException {
+        System.out.println("---- testShortestAllRoads -----------");
 
-                Graph graph = reader.read();
+        initialize(origin, destination, road, graph);
+        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Dijkstra: " + solutionDijkstra.getPath().getLength());
+        initialize(origin, destination, road, graph);
+        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Bellman-Ford: " + solutionBellMan.getPath().getLength());
+    }
 
-                // Create the drawing:
-                Drawing drawing = createDrawing();
-        
-                // TODO: Draw the graph on the drawing.
-                drawing.drawGraph(graph);
-        
-                // TODO: Create a PathReader.
-                PathReader pathReader = new BinaryPathReader(new DataInputStream(new BufferedInputStream(new FileInputStream(pathName))));
-        
-                // TODO: Read the path.
-                Path path = pathReader.readPath(graph);
-        
-                // TODO: Draw the path.
-                drawing.drawPath(path);
-            }
-        
+    public static void testShortestCarsOnly(String graphName, Graph graph, int origin, int destination, int road) throws IOException {
+        System.out.println("---- testShortestCarsOnly-----------");
+
+        initialize(origin, destination, road, graph);
+        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Dijkstra: " + solutionDijkstra.getPath().getLength());
+        initialize(origin, destination, road, graph);
+        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Bellman-Ford: " + solutionBellMan.getPath().getLength());
+    }
+
+    public static void testFastestAllRoads(String graphName, Graph graph, int origin, int destination, int road) throws IOException {
+        System.out.println("---- testFastestAllRoads-----------");
+
+        initialize(origin, destination, road, graph);
+        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Dijkstra: " + solutionDijkstra.getPath().getLength());
+        initialize(origin, destination, road, graph);
+        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Bellman-Ford: " + solutionBellMan.getPath().getLength());
+    }
+
+    public static void testFastestCarsOnly(String graphName, Graph graph, int origin, int destination, int road) throws IOException {
+      
+        System.out.println("---- testFastestCarsOnly-----------");
+        initialize(origin, destination, road, graph);
+        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Dijkstra: " + solutionDijkstra.getPath().getLength());
+        initialize(origin, destination, road, graph);
+        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Bellman-Ford: " + solutionBellMan.getPath().getLength());
+    }
+
+    public static void testRoadCarsNotFound(String graphName, Graph graph, int origin, int destination, int road) throws IOException {
+        System.out.println("---- testRoadCarsNotFound-----------");
+
+        initialize(origin, destination, road, graph);
+        if (solutionDijkstra.getPath() != null) {
+            System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Dijkstra: " + solutionDijkstra.getPath().getLength());
+            System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Bellman-Ford: " + solutionBellMan.getPath().getLength());
+
         }
+        // Add the second initialization and print statements similarly...
+    }
+
+    public static void testShortestLongDistance(String graphName, Graph graph, int origin, int destination, int road) throws IOException {
+        System.out.println("---- testShortestLongDistance ----------");
+        initialize(origin, destination, road, graph);
+
+        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Dijkstra: " + solutionDijkstra.getPath().getLength());
+        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Bellman-Ford: " + solutionBellMan.getPath().getLength());
+    }
+
+    public static void testShortestShortDistance(String graphName, Graph graph, int origin, int destination, int road) throws IOException {
+
+        System.out.println("---- testShortestLongDistance -----------");
+        initialize(origin, destination, road, graph);
+
+        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Dijkstra: " + solutionDijkstra.getPath().getLength());
+        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Bellman-Ford: " + solutionBellMan.getPath().getLength());
+    }
+}
