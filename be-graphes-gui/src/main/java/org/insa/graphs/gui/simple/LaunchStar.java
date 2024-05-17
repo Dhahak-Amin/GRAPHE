@@ -1,10 +1,5 @@
 package org.insa.graphs.gui.simple;
 
-
-import org.insa.graphs.model.io.BinaryPathReader;
-
-import static org.junit.Assert.assertEquals;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.io.BufferedInputStream;
@@ -12,16 +7,10 @@ import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
-
-
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
-
-
 import org.insa.graphs.algorithm.ArcInspector;
 import org.insa.graphs.algorithm.ArcInspectorFactory;
-import org.insa.graphs.algorithm.shortestpath.AStarAlgorithm;
-import org.insa.graphs.algorithm.shortestpath.BellmanFordAlgorithm;
 import org.insa.graphs.algorithm.shortestpath.DijkstraAlgorithm;
 import org.insa.graphs.algorithm.shortestpath.ShortestPathData;
 import org.insa.graphs.algorithm.shortestpath.ShortestPathSolution;
@@ -29,12 +18,9 @@ import org.insa.graphs.gui.drawing.Drawing;
 import org.insa.graphs.gui.drawing.components.BasicDrawing;
 import org.insa.graphs.model.Graph;
 import org.insa.graphs.model.Node;
-import org.insa.graphs.model.Path;
 import org.insa.graphs.model.io.BinaryGraphReader;
 import org.insa.graphs.model.io.GraphReader;
-import org.insa.graphs.model.io.PathReader;
-
-
+import org.insa.graphs.algorithm.shortestpath.AStarAlgorithm;
 
 public class LaunchStar {
 
@@ -92,7 +78,7 @@ public class LaunchStar {
       
          String mapINSA = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/insa.mapgr";
          String mapBelgium = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/belgium.mapgr";
-         String mapWashington = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/washingto";
+         String mapWashington = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/washington.mapgr";
 
 
        
@@ -111,9 +97,9 @@ public class LaunchStar {
         
     }
     public static void initialize(int Origin_param, int Destination_param, int Road, Graph graph) {
-        Origin = new Node(Origin_param, null);
-        Destination = new Node(Destination_param, null);
-        List<ArcInspector> listInspector = new ArcInspectorFactory().getAllFilters();
+        Origin = graph.get(Origin_param);
+        Destination = graph.get(Destination_param);
+        listInspector = ArcInspectorFactory.getAllFilters(); // Corrigé ici pour assigner à la variable de classe
         arcInspector = listInspector.get(Road);
         data = new ShortestPathData(graph, Origin, Destination, arcInspector);
         dijkstraAlgo = new DijkstraAlgorithm(data);
@@ -121,30 +107,30 @@ public class LaunchStar {
         solutionDijkstra = dijkstraAlgo.run();
         solutionAStar = aStarAlgo.run();
     }
+    
 
     public static void main(String[] args) throws Exception {
         initAll();
         // Tests bon pour INSA
 
-        // initialize(0, 100, 0, graphINSA);
-        // System.out.println("Shortest path length from node 0 to node 100 with Dijkstra for INSA: " + solutionDijkstra.getPath().getLength());
-        // initialize(0, 100, 0, graphINSA);
-        // System.out.println("Shortest path length from node 0 to node 100 with Bellman-Ford for INSA: " + solutionBellMan.getPath().getLength());
+       //  initialize(10, 30, 0, graphINSA);
+       //  System.out.println("Shortest path length from node 0 to node 100 with Dijkstra for INSA: " + solutionDijkstra.getPath().getLength());
+        // initialize(10, 30, 0, graphINSA);
+         //System.out.println("Shortest path length from node 0 to node 100 with Bellman-Ford for INSA: " + solutionAStar.getPath().getLength());
 
-    
   
-        // testShortestAllRoads("INSA", graphINSA, 0, 150, 0);
-        // testShortestCarsOnly("INSA", graphINSA, 253, 5, 1);
-        // testFastestAllRoads("INSA", graphINSA, 0, 500, 2);
-        // testFastestCarsOnly("INSA", graphINSA, 0, 500, 2);
-        // testRoadCarsNotFound("INSA", graphINSA, 700, 0, 0);
-        // testShortestLongDistance("INSA", graphINSA, 143, 600, 0);
-        // testShortestShortDistance("INSA", graphINSA, 95, 200, 0);
+        //   testShortestAllRoads("INSA", graphINSA, 0, 1200, 0);
+        //   testShortestCarsOnly("INSA", graphINSA, 0, 1200, 1);
+        //   testFastestAllRoads("INSA", graphINSA, , 500, 2);
+        //  testFastestCarsOnly("INSA", graphINSA, 2, 500, 2);
+        //   testRoadCarsNotFound("INSA", graphINSA, 700, 0, 0);
+        //   testShortestLongDistance("INSA", graphINSA, 143, 600, 0);
+        //  testShortestShortDistance("INSA", graphINSA, 95, 200, 0);
 
-        // initialize(0, 100, 0, graphBelgium);
-        // System.out.println("Shortest path length from node 0 to node 100 with Dijkstra for INSA : " + solutionDijkstra.getPath().getLength());
-        // initialize(0, 100, 0, graphBelgium);
-        // System.out.println("Shortest path length from node 0 to node 100 with A* for INSA : " + solutionAStar.getPath().getLength());
+         initialize(0, 100, 0, graphBelgium);
+         System.out.println("Shortest path length from node 0 to node 100 with Dijkstra for Belguim : " + solutionDijkstra.getPath().getLength());
+         initialize(0, 100, 0, graphBelgium);
+         System.out.println("Shortest path length from node 0 to node 100 with A* for Belguim : " + solutionAStar.getPath().getLength());
 
         // testShortestAllRoads("Belgium", graphBelgium, 0, 150, 0);
         // testFastestCarsOnly("Belgium", graphBelgium, 254161, 804619, 1);
