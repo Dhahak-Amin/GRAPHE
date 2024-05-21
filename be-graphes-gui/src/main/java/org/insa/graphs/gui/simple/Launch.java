@@ -1,4 +1,5 @@
 package org.insa.graphs.gui.simple;
+import java.util.Random;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -23,7 +24,11 @@ import org.insa.graphs.model.io.BinaryGraphReader;
 import org.insa.graphs.model.io.GraphReader;
 public class Launch {
 
+	private static int Origin_int;
+	private static int Destination_int;
+    
     private static Node Origin;
+
     private static Node Destination;
     private static List <ArcInspector> listInspector;
     private static ArcInspector arcInspector;
@@ -117,11 +122,12 @@ public class Launch {
     }
     
     public static void main(String[] args) throws Exception {
-  
+        Random random = new Random();
+
 
         initAll();
         // Tests bon pour INSA
-             //   initialize(0,9, 0, graphCarre);
+      //   initialize(0,9, 0, graphCarre);
       //  System.out.println("Shortest path length from node 0 to node 100 with Dijkstra for Carre " + solutionDijkstra.getPath().getLength());
       //  initialize(0, 9, 0, graphCarre);
       //   System.out.println("Shortest path length from node 0 to node 100 with Bellman-Ford for Carre : " + solutionBellMan.getPath().getLength());
@@ -129,10 +135,22 @@ public class Launch {
        // testShortestAllRoads("INSA", graphCarre ,0, 10, 0);
          //testShortestCarsOnly("INSA", graphCarre, 0,10, 1);
 
-       initialize(0, 0, 0, graphINSA);
-       System.out.println("Shortest path length from node 0 to node 100 with Dijkstra for INSA: " + solutionDijkstra.getPath().getLength());
-     initialize(0, 100, 0, graphINSA);
-        System.out.println("Shortest path length from node 0 to node 100 with Bellman-Ford for INSA: " + solutionBellMan.getPath().getLength());
+       //initialize(0, 100, 0, graphINSA);
+     //  System.out.println("Shortest path length from node 0 to node 100 with Dijkstra for INSA: " + solutionDijkstra.getPath().getLength());
+    // initialize(0, 100, 0, graphINSA);
+       // System.out.println("Shortest path length from node 0 to node 100 with Bellman-Ford for INSA: " + solutionBellMan.getPath().getLength());
+
+       int originIndex = random.nextInt(graphINSA.size());
+int destinationIndex = random.nextInt(graphINSA.size());
+  for (int i = 0; i < 10; i++) {
+
+     originIndex = random.nextInt(graphINSA.size());
+     destinationIndex = random.nextInt(graphINSA.size());
+     initialize(originIndex, Destination_int, 0, graphINSA);
+     System.out.println("Shortest path length from node" +originIndex+" to node"+ destinationIndex +"with Dijkstra for INSA : " + solutionDijkstra.getPath().getLength());
+     System.out.println("Shortest path length from node" +originIndex+" to node"+ destinationIndex +"with Billman for INSA : " + solutionBellMan.getPath().getLength());
+    
+}
 
     //     testShortestAllRoads("INSA", graphINSA, 0, 150, 0);
     //      testShortestCarsOnly("INSA", graphINSA, 253, 5, 1);
@@ -169,10 +187,6 @@ public class Launch {
         // testRoadCarsNotFound("INSA", graphINSA, 700, 0, 0);
         // testShortestLongDistance("INSA", graphINSA, 143, 600, 0);
         // testShortestShortDistance("INSA", graphINSA, 95, 200, 0);
-
-
-    
-        
   
     }
 

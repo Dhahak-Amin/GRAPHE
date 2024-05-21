@@ -1,4 +1,5 @@
 package org.insa.graphs.gui.simple;
+import java.util.Random;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -23,6 +24,7 @@ import org.insa.graphs.model.io.GraphReader;
 import org.insa.graphs.algorithm.shortestpath.AStarAlgorithm;
 
 public class LaunchStar {
+    Random random = new Random();
 
 
     /**
@@ -118,6 +120,20 @@ public class LaunchStar {
         // initialize(10, 30, 0, graphINSA);
          //System.out.println("Shortest path length from node 0 to node 100 with Bellman-Ford for INSA: " + solutionAStar.getPath().getLength());
 
+
+         Random random = new Random();
+
+int originIndex = random.nextInt(graphINSA.size());
+int destinationIndex = random.nextInt(graphINSA.size());
+for (int i = 0; i < 10; i++) {
+
+     originIndex = random.nextInt(graphINSA.size());
+     destinationIndex = random.nextInt(graphINSA.size());
+     initialize(originIndex, Destination_int, 0, graphINSA);
+     System.out.println("Shortest path length from node" +originIndex+" to node"+ destinationIndex +"with Dijkstra for INSA : " + solutionDijkstra.getPath().getLength());
+     System.out.println("Shortest path length from node" +originIndex+" to node"+ destinationIndex +"with Billman for INSA : " + solutionAStar.getPath().getLength());
+    
+}
   
         //   testShortestAllRoads("INSA", graphINSA, 0, 1200, 0);
         //   testShortestCarsOnly("INSA", graphINSA, 0, 1200, 1);
@@ -127,10 +143,10 @@ public class LaunchStar {
         //   testShortestLongDistance("INSA", graphINSA, 143, 600, 0);
         //  testShortestShortDistance("INSA", graphINSA, 95, 200, 0);
 
-         initialize(0, 100, 0, graphBelgium);
-         System.out.println("Shortest path length from node 0 to node 100 with Dijkstra for Belguim : " + solutionDijkstra.getPath().getLength());
-         initialize(0, 100, 0, graphBelgium);
-         System.out.println("Shortest path length from node 0 to node 100 with A* for Belguim : " + solutionAStar.getPath().getLength());
+        // initialize(0, 100, 0, graphBelgium);
+        // System.out.println("Shortest path length from node 0 to node 100 with Dijkstra for Belguim : " + solutionDijkstra.getPath().getLength());
+        // initialize(0, 100, 0, graphBelgium);
+        // System.out.println("Shortest path length from node 0 to node 100 with A* for Belguim : " + solutionAStar.getPath().getLength());
 
         // testShortestAllRoads("Belgium", graphBelgium, 0, 150, 0);
         // testFastestCarsOnly("Belgium", graphBelgium, 254161, 804619, 1);

@@ -1,6 +1,8 @@
 package org.insa.graphs.algorithm.utils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Implements a binary heap containing elements of type E.
@@ -19,12 +21,16 @@ public class BinaryHeap<E extends Comparable<E>> implements PriorityQueue<E> {
     // The heap array, which can be larger than currentSize.
     protected final ArrayList<E> array;
 
+    // Map to store the positions of elements for O(1) access.
+    private final Map<E, Integer> positionMap;
+
     /**
      * Construct a new empty binary heap.
      */
     public BinaryHeap() {
         this.currentSize = 0;
-        this.array = new ArrayList<E>();
+        this.array = new ArrayList<>();
+        this.positionMap = new HashMap<>();
     }
 
     /**
@@ -34,7 +40,8 @@ public class BinaryHeap<E extends Comparable<E>> implements PriorityQueue<E> {
      */
     public BinaryHeap(BinaryHeap<E> heap) {
         this.currentSize = heap.currentSize;
-        this.array = new ArrayList<E>(heap.array);
+        this.array = new ArrayList<>(heap.array);
+        this.positionMap = new HashMap<>(heap.positionMap);
     }
 
     /**
@@ -46,10 +53,10 @@ public class BinaryHeap<E extends Comparable<E>> implements PriorityQueue<E> {
     private void arraySet(int index, E value) {
         if (index == this.array.size()) {
             this.array.add(value);
-        }
-        else {
+        } else {
             this.array.set(index, value);
         }
+        this.positionMap.put(value, index);
     }
 
     /**
@@ -74,9 +81,7 @@ public class BinaryHeap<E extends Comparable<E>> implements PriorityQueue<E> {
     private void percolateUp(int index) {
         E x = this.array.get(index);
 
-        for (; index > 0
-                && x.compareTo(this.array.get(indexParent(index))) < 0; index = indexParent(
-                        index)) {
+        for (; index > 0 && x.compareTo(this.array.get(indexParent(index))) < 0; index = indexParent(index)) {
             E moving_val = this.array.get(indexParent(index));
             this.arraySet(index, moving_val);
         }
@@ -106,8 +111,7 @@ public class BinaryHeap<E extends Comparable<E>> implements PriorityQueue<E> {
                     this.arraySet(ileft, current);
                     this.percolateDown(ileft);
                 }
-            }
-            else {
+            } else {
                 // Right is smaller
                 if (right.compareTo(current) < 0) {
                     this.arraySet(index, right);
@@ -136,36 +140,20 @@ public class BinaryHeap<E extends Comparable<E>> implements PriorityQueue<E> {
     }
 
     @Override
-
     public void remove(E x) throws ElementNotFoundException {
-        int index=-1;
-        if (this.isEmpty()) {
+        Integer index = this.positionMap.remove(x);
+        if (index == null) {
             throw new ElementNotFoundException(x);
         }
-        //sinon on identifie l'index de l'élément à supprimer
-       
-        else {
-            //index=this.array.indexOf(x);
-            for(int i=0; i<this.size();i++) {
-             if(this.array.get(i).equals(x))
-                 index = i;
-             }
+        this.currentSize--;
+        if (index < this.currentSize) {
+            E lastElement = this.array.get(this.currentSize);
+            this.arraySet(index, lastElement);
+            this.positionMap.put(lastElement, index);
+            this.percolateUp(index);
+            this.percolateDown(index);
         }
-        //si l'élément n'existe pas on renvoie également une erreur
-        if(index == -1) {
-            throw new ElementNotFoundException(x);
-        }
-       this.currentSize--;
-        E dernier_element= this.array.get(this.currentSize);
-    
-        this.arraySet(index, dernier_element);
-        this.percolateUp(index);
-        this.percolateDown(index);
-       
     }
- 
-    
- 
 
     @Override
     public E findMin() throws EmptyPriorityQueueException {
@@ -180,6 +168,7 @@ public class BinaryHeap<E extends Comparable<E>> implements PriorityQueue<E> {
         E lastItem = this.array.get(--this.currentSize);
         this.arraySet(0, lastItem);
         this.percolateDown(0);
+        this.positionMap.remove(minItem);
         return minItem;
     }
 
@@ -218,7 +207,7 @@ public class BinaryHeap<E extends Comparable<E>> implements PriorityQueue<E> {
      * 
      * @param maxDepth Maximum depth of the tree to display.
      * 
-     * @return a string containing a tree view of this binary heap.
+     * @return a string containing a tree view this binary heap.
      */
     public String toStringTree(int maxDepth) {
         return BinaryHeapFormatter.toStringTree(this, maxDepth);
@@ -228,5 +217,4 @@ public class BinaryHeap<E extends Comparable<E>> implements PriorityQueue<E> {
     public String toString() {
         return BinaryHeapFormatter.toStringTree(this, 8);
     }
-
 }
