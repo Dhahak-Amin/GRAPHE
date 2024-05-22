@@ -112,6 +112,8 @@ public class LaunchStar {
     
 
     public static void main(String[] args) throws Exception {
+        Random random = new Random();
+
         initAll();
         // Tests bon pour INSA
 
@@ -121,7 +123,6 @@ public class LaunchStar {
          //System.out.println("Shortest path length from node 0 to node 100 with Bellman-Ford for INSA: " + solutionAStar.getPath().getLength());
 
 
-         Random random = new Random();
 
 int originIndex = random.nextInt(graphINSA.size());
 int destinationIndex = random.nextInt(graphINSA.size());
