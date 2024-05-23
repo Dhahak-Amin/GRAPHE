@@ -26,8 +26,6 @@ import org.insa.graphs.algorithm.shortestpath.AStarAlgorithm;
 
 public class Launch {
 
-    private static Node Origin;
-    private static Node Destination;
     private static List<ArcInspector> listInspector;
     private static ShortestPathData data;
     private static BellmanFordAlgorithm bellManAlgo;
@@ -38,10 +36,8 @@ public class Launch {
     private static ShortestPathSolution solutionAStar;
 
     private static Graph graphINSA = null;
-    private static Graph graphWashington = null;
-    private static Graph graphBelgium = null;
-    private static Graph graphDence = null;
-    private static Graph graphCarre = null;
+    private static Graph graphToulouse = null;
+    private static Graph graphParis= null;
 
     public static Drawing createDrawing() throws Exception {
         BasicDrawing basicDrawing = new BasicDrawing();
@@ -62,31 +58,32 @@ public class Launch {
 
     public static void initAll() throws Exception {
         String mapINSA = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/insa.mapgr";
-        String mapBelgium = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/belgium.mapgr";
-        String mapWashington = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/washington.mapgr";
+        String mapParis = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/paris.mapgr";
+        String mapToulouse= "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/toulouse.mapgr";
 
         final GraphReader readerINSA = new BinaryGraphReader(
                 new DataInputStream(new BufferedInputStream(new FileInputStream(mapINSA))));
-        final GraphReader readerBelgium = new BinaryGraphReader(
-                new DataInputStream(new BufferedInputStream(new FileInputStream(mapBelgium))));
-        final GraphReader readerWashington = new BinaryGraphReader(
-                new DataInputStream(new BufferedInputStream(new FileInputStream(mapWashington))));
+        final GraphReader readerParis = new BinaryGraphReader(
+                new DataInputStream(new BufferedInputStream(new FileInputStream(mapParis))));
+        final GraphReader readerToulouse = new BinaryGraphReader(
+                new DataInputStream(new BufferedInputStream(new FileInputStream(mapToulouse))));
 
         graphINSA = readerINSA.read();
-        graphBelgium = readerBelgium.read();
-        graphWashington = readerWashington.read();
-  
+        graphParis= readerParis.read();
+        graphToulouse= readerToulouse.read();
     }
 
     public static void initialize(int originParam, int destinationParam, Graph graph) {
-        Origin = graph.get(originParam);
-        Destination = graph.get(destinationParam);
-        listInspector = ArcInspectorFactory.getAllFilters();
+        Node origin = graph.get(originParam);
+        Node destination = graph.get(destinationParam);
+
+        // Utilisation de filtres spécifiques pour réduire le temps de calcul
+        listInspector = ArcInspectorFactory.getAllFilters(); // Utilise les 3 premiers filtres pour simplifier
 
         for (ArcInspector arcInspector : listInspector) {
             System.out.println("Testing with filter: " + arcInspector.toString());
 
-            data = new ShortestPathData(graph, Origin, Destination, arcInspector);
+            data = new ShortestPathData(graph, origin, destination, arcInspector);
             dijkstraAlgo = new DijkstraAlgorithm(data);
             bellManAlgo = new BellmanFordAlgorithm(data);
             aStarAlgo = new AStarAlgorithm(data);
@@ -108,14 +105,23 @@ public class Launch {
     public static void main(String[] args) throws Exception {
         Random random = new Random();
         initAll();
+        Graph[] graphs = {graphINSA, graphParis, graphToulouse};
+        String[] graphNames = {"INSA", "Paris", "Toulouse"};
 
-        int originIndex = random.nextInt(graphINSA.size());
-        int destinationIndex = random.nextInt(graphINSA.size());
+        for (int i = 0; i < 100; i++) { // Réduire le nombre de tests à 10
+            int graphIndex = random.nextInt(graphs.length);
+            Graph graph = graphs[graphIndex];
+            String graphName = graphNames[graphIndex];
 
-        for (int i = 0; i < 100; i++) {
-            initialize(originIndex, destinationIndex, graphINSA);
-            originIndex = random.nextInt(graphINSA.size());
-            destinationIndex = random.nextInt(graphINSA.size());
+            int originIndex = random.nextInt(graph.size());
+            int destinationIndex = random.nextInt(graph.size());
+
+            while (originIndex == destinationIndex) {
+                destinationIndex = random.nextInt(graph.size());
+            }
+
+            System.out.println("Testing on graph: " + graphName);
+            initialize(originIndex, destinationIndex, graph);
         }
     }
 }
