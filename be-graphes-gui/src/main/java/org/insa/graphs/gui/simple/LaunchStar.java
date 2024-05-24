@@ -1,20 +1,22 @@
 package org.insa.graphs.gui.simple;
-import java.util.Random;
 
+import java.util.Random;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import org.insa.graphs.algorithm.ArcInspector;
 import org.insa.graphs.algorithm.ArcInspectorFactory;
+import org.insa.graphs.algorithm.shortestpath.BellmanFordAlgorithm;
 import org.insa.graphs.algorithm.shortestpath.DijkstraAlgorithm;
 import org.insa.graphs.algorithm.shortestpath.ShortestPathData;
 import org.insa.graphs.algorithm.shortestpath.ShortestPathSolution;
+import org.insa.graphs.algorithm.utils.BinaryHeap;
+import org.insa.graphs.algorithm.utils.PriorityQueue;
 import org.insa.graphs.gui.drawing.Drawing;
 import org.insa.graphs.gui.drawing.components.BasicDrawing;
 import org.insa.graphs.model.Graph;
@@ -24,38 +26,20 @@ import org.insa.graphs.model.io.GraphReader;
 import org.insa.graphs.algorithm.shortestpath.AStarAlgorithm;
 
 public class LaunchStar {
-    Random random = new Random();
 
-
-    /**
-     * Create a new Drawing inside a JFrame an return it.
-     * 
-     * @return The created drawing.
-     * 
-     * @throws Exception if something wrong happens when creating the graph.
-     */
-	
-	private static int Origin_int;
-	private static int Destination_int;
-    private static int numInspector;
-    
-    private static Node Origin;
-    private static Node Destination;
-    
-    private static List <ArcInspector> listInspector;
-    private static ArcInspector arcInspector;
-    
+    private static List<ArcInspector> listInspector;
     private static ShortestPathData data;
-    
+    private static BellmanFordAlgorithm bellManAlgo;
     private static DijkstraAlgorithm dijkstraAlgo;
     private static AStarAlgorithm aStarAlgo;
-    
+    private static ShortestPathSolution solutionBellMan;
     private static ShortestPathSolution solutionDijkstra;
     private static ShortestPathSolution solutionAStar;
+
     private static Graph graphINSA = null;
-    private static Graph graphWashington = null;
-    private static Graph graphBelgium = null;
-    
+    private static Graph graphToulouse = null;
+    private static Graph graphParis= null;
+
     public static Drawing createDrawing() throws Exception {
         BasicDrawing basicDrawing = new BasicDrawing();
         SwingUtilities.invokeAndWait(new Runnable() {
@@ -72,160 +56,98 @@ public class LaunchStar {
         });
         return basicDrawing;
     }
-    
+
     public static void initAll() throws Exception {
+        String mapINSA = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/insa.mapgr";
+        String mapParis = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/paris.mapgr";
+        String mapToulouse= "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/toulouse.mapgr";
 
+        final GraphReader readerINSA = new BinaryGraphReader(
+                new DataInputStream(new BufferedInputStream(new FileInputStream(mapINSA))));
+        final GraphReader readerParis = new BinaryGraphReader(
+                new DataInputStream(new BufferedInputStream(new FileInputStream(mapParis))));
+        final GraphReader readerToulouse = new BinaryGraphReader(
+                new DataInputStream(new BufferedInputStream(new FileInputStream(mapToulouse))));
 
-        // Visit these directory to see the list of available files on Commetud.
-      
-         String mapINSA = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/insa.mapgr";
-         String mapBelgium = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/belgium.mapgr";
-         String mapWashington = "/mnt/commetud/3eme Annee MIC/Graphes-et-Algorithmes/Maps/washington.mapgr";
-
-
-       
-         final GraphReader readerINSA = new BinaryGraphReader(
-            new DataInputStream(new BufferedInputStream(new FileInputStream(mapINSA))));
-    final GraphReader readerBelgium = new BinaryGraphReader(
-            new DataInputStream(new BufferedInputStream(new FileInputStream(mapBelgium))));
-    final GraphReader readerWashington = new BinaryGraphReader(
-            new DataInputStream(new BufferedInputStream(new FileInputStream(mapWashington))));
-
-    graphINSA = readerINSA.read();
-    graphBelgium = readerBelgium.read();
-    graphWashington = readerWashington.read();
-        
-	
-        
+        graphINSA = readerINSA.read();
+        graphParis= readerParis.read();
+        graphToulouse= readerToulouse.read();
     }
-    public static void initialize(int Origin_param, int Destination_param, int Road, Graph graph) {
-        Origin = graph.get(Origin_param);
-        Destination = graph.get(Destination_param);
-        listInspector = ArcInspectorFactory.getAllFilters(); // Corrigé ici pour assigner à la variable de classe
-        arcInspector = listInspector.get(Road);
-        data = new ShortestPathData(graph, Origin, Destination, arcInspector);
-        dijkstraAlgo = new DijkstraAlgorithm(data);
-        aStarAlgo= new AStarAlgorithm(data);
-        solutionDijkstra = dijkstraAlgo.run();
-        solutionAStar = aStarAlgo.run();
+
+    public static void initialize(int originParam, int destinationParam, Graph graph) {
+        Node origin = graph.get(originParam);
+        Node destination = graph.get(destinationParam);
+
+        listInspector = ArcInspectorFactory.getAllFilters();
+
+        for (ArcInspector arcInspector : listInspector) {
+            System.out.println("Testing with filter: " + arcInspector.toString());
+
+            data = new ShortestPathData(graph, origin, destination, arcInspector);
+            dijkstraAlgo = new DijkstraAlgorithm(data);
+            bellManAlgo = new BellmanFordAlgorithm(data);
+            aStarAlgo = new AStarAlgorithm(data);
+
+            solutionBellMan = bellManAlgo.run();
+            solutionDijkstra = dijkstraAlgo.run();
+            solutionAStar = aStarAlgo.run();
+
+            if (solutionDijkstra.getPath() != null && solutionBellMan.getPath() != null && solutionAStar.getPath() != null) {
+                System.out.println("Shortest path length with Dijkstra: " + solutionDijkstra.getPath().getLength());
+                System.out.println("Shortest path length with Bellman-Ford: " + solutionBellMan.getPath().getLength());
+                System.out.println("Shortest path length with A*: " + solutionAStar.getPath().getLength());
+
+                verifyIntermediatePoint(origin, destination, graph, arcInspector);
+            } else {
+                System.out.println("No valid path found for the given filter.");
+            }
+        }
     }
-    
+
+    private static void verifyIntermediatePoint(Node origin, Node destination, Graph graph, ArcInspector arcInspector) {
+        int middleIndex = (origin.getId() + destination.getId()) / 2;
+        Node middleNode = graph.get(middleIndex);
+
+        ShortestPathData dataToMiddle = new ShortestPathData(graph, origin, middleNode, arcInspector);
+        ShortestPathData dataFromMiddle = new ShortestPathData(graph, middleNode, destination, arcInspector);
+
+        DijkstraAlgorithm dijkstraToMiddle = new DijkstraAlgorithm(dataToMiddle);
+        DijkstraAlgorithm dijkstraFromMiddle = new DijkstraAlgorithm(dataFromMiddle);
+
+        ShortestPathSolution solutionToMiddle = dijkstraToMiddle.run();
+        ShortestPathSolution solutionFromMiddle = dijkstraFromMiddle.run();
+
+        if (solutionToMiddle.getPath() != null && solutionFromMiddle.getPath() != null) {
+            float totalLength = solutionToMiddle.getPath().getLength() + solutionFromMiddle.getPath().getLength();
+            assert totalLength == solutionDijkstra.getPath().getLength() :
+                    "Intermediate point check failed. Total length: " + totalLength + ", Expected: " + solutionDijkstra.getPath().getLength();
+            System.out.println("Intermediate point check passed.");
+        } else {
+            System.out.println("No valid path found for intermediate check.");
+        }
+    }
+// djikistra sort des valeurs croissants 
 
     public static void main(String[] args) throws Exception {
         Random random = new Random();
-
         initAll();
-        // Tests bon pour INSA
+        Graph[] graphs = {graphINSA, graphParis, graphToulouse};
+        String[] graphNames = {"INSA", "Paris", "Toulouse"};
 
-       //  initialize(10, 30, 0, graphINSA);
-       //  System.out.println("Shortest path length from node 0 to node 100 with Dijkstra for INSA: " + solutionDijkstra.getPath().getLength());
-        // initialize(10, 30, 0, graphINSA);
-         //System.out.println("Shortest path length from node 0 to node 100 with Bellman-Ford for INSA: " + solutionAStar.getPath().getLength());
+        for (int i = 0; i < 10; i++) { // Réduire le nombre de tests à 10
+            int graphIndex = random.nextInt(graphs.length);
+            Graph graph = graphs[graphIndex];
+            String graphName = graphNames[graphIndex];
 
+            int originIndex = random.nextInt(graph.size());
+            int destinationIndex = random.nextInt(graph.size());
 
+            while (originIndex == destinationIndex) {
+                destinationIndex = random.nextInt(graph.size());
+            }
 
-int originIndex = random.nextInt(graphINSA.size());
-int destinationIndex = random.nextInt(graphINSA.size());
-for (int i = 0; i < 10; i++) {
-
-     originIndex = random.nextInt(graphINSA.size());
-     destinationIndex = random.nextInt(graphINSA.size());
-     initialize(originIndex, Destination_int, 0, graphINSA);
-     System.out.println("Shortest path length from node" +originIndex+" to node"+ destinationIndex +"with Dijkstra for INSA : " + solutionDijkstra.getPath().getLength());
-     System.out.println("Shortest path length from node" +originIndex+" to node"+ destinationIndex +"with Billman for INSA : " + solutionAStar.getPath().getLength());
-    
-}
-  
-        //   testShortestAllRoads("INSA", graphINSA, 0, 1200, 0);
-        //   testShortestCarsOnly("INSA", graphINSA, 0, 1200, 1);
-        //   testFastestAllRoads("INSA", graphINSA, , 500, 2);
-        //  testFastestCarsOnly("INSA", graphINSA, 2, 500, 2);
-        //   testRoadCarsNotFound("INSA", graphINSA, 700, 0, 0);
-        //   testShortestLongDistance("INSA", graphINSA, 143, 600, 0);
-        //  testShortestShortDistance("INSA", graphINSA, 95, 200, 0);
-
-        // initialize(0, 100, 0, graphBelgium);
-        // System.out.println("Shortest path length from node 0 to node 100 with Dijkstra for Belguim : " + solutionDijkstra.getPath().getLength());
-        // initialize(0, 100, 0, graphBelgium);
-        // System.out.println("Shortest path length from node 0 to node 100 with A* for Belguim : " + solutionAStar.getPath().getLength());
-
-        // testShortestAllRoads("Belgium", graphBelgium, 0, 150, 0);
-        // testFastestCarsOnly("Belgium", graphBelgium, 254161, 804619, 1);
-        // testFastestAllRoads("Belgium", graphBelgium, 507372, 532433, 2);
-        // testFastestCarsOnly("Belgium", graphBelgium, 1030412, 478300, 3);
-        // testShortestLongDistance("Belgium", graphBelgium, 358866, 273663, 0);
-        // testShortestShortDistance("Belgium", graphBelgium, 157080, 157078, 0);
-
-    
-        
-  
-    }
-
-
-    public static void testShortestAllRoads(String graphName, Graph graph, int origin, int destination, int road) throws IOException {
-        System.out.println("---- testShortestAllRoads -----------");
-
-        initialize(origin, destination, road, graph);
-        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Dijkstra: " + solutionDijkstra.getPath().getLength());
-        initialize(origin, destination, road, graph);
-        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with A* " +  solutionAStar.getPath().getLength());
-    }
-
-    public static void testShortestCarsOnly(String graphName, Graph graph, int origin, int destination, int road) throws IOException {
-        System.out.println("---- testShortestCarsOnly-----------");
-
-        initialize(origin, destination, road, graph);
-        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Dijkstra: " + solutionDijkstra.getPath().getLength());
-        initialize(origin, destination, road, graph);
-        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with A* : " +  solutionAStar.getPath().getLength());
-    }
-
-    public static void testFastestAllRoads(String graphName, Graph graph, int origin, int destination, int road) throws IOException {
-        System.out.println("---- testFastestAllRoads-----------");
-
-        initialize(origin, destination, road, graph);
-        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Dijkstra: " + solutionDijkstra.getPath().getLength());
-        initialize(origin, destination, road, graph);
-        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with A* : " +  solutionAStar.getPath().getLength());
-    }
-
-    public static void testFastestCarsOnly(String graphName, Graph graph, int origin, int destination, int road) throws IOException {
-      
-        System.out.println("---- testFastestCarsOnly-----------");
-        initialize(origin, destination, road, graph);
-        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Dijkstra: " + solutionDijkstra.getPath().getLength());
-        initialize(origin, destination, road, graph);
-        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with A* : " +  solutionAStar.getPath().getLength());
-    }
-
-    public static void testRoadCarsNotFound(String graphName, Graph graph, int origin, int destination, int road) throws IOException {
-        System.out.println("---- testRoadCarsNotFound-----------");
-
-        initialize(origin, destination, road, graph);
-        if (solutionDijkstra.getPath() != null) {
-            System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Dijkstra: " + solutionDijkstra.getPath().getLength());
-            System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with A* : " + solutionAStar.getPath().getLength());
-
+            System.out.println("Testing on graph: " + graphName);
+            initialize(originIndex, destinationIndex, graph);
         }
-        // Add the second initialization and print statements similarly...
-    }
-
-    public static void testShortestLongDistance(String graphName, Graph graph, int origin, int destination, int road) throws IOException {
-        System.out.println("---- testShortestLongDistance ----------");
-        initialize(origin, destination, road, graph);
-
-        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Dijkstra: " + solutionDijkstra.getPath().getLength());
-        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with A* : " +  solutionAStar.getPath().getLength());
-    }
-
-    public static void testShortestShortDistance(String graphName, Graph graph, int origin, int destination, int road) throws IOException {
-
-        System.out.println("---- testShortestLongDistance -----------");
-        initialize(origin, destination, road, graph);
-
-        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with Dijkstra: " + solutionDijkstra.getPath().getLength());
-        System.out.println("Shortest path length from node " + origin + " to node " + destination + " in " + graphName + " with A* : " +  solutionAStar.getPath().getLength());
     }
 }
-
-    
