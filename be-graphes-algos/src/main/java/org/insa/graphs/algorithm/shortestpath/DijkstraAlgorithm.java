@@ -29,149 +29,152 @@ public class DijkstraAlgorithm extends ShortestPathAlgorithm {
 	}
 
 
+	@Override
+protected ShortestPathSolution doRun() {
+    final ShortestPathData data = getInputData();
+    ShortestPathSolution solution = null;
+    Label[] labels;
 
-    @Override
-    protected ShortestPathSolution doRun() {
-        final ShortestPathData data = getInputData();
-        ShortestPathSolution solution = null;
-        Label[] labels;
+    // appel de la fonction: labels créés et initialisés
+    labels = labels_init();
 
-		// appel de la fonction: labels créés et initialisés
-		labels = labels_init();
+    // initialisation du tas
+    // création du tas des labels
+    BinaryHeap<Label> tas = new BinaryHeap<>();
 
-		// initialisation du tas
-		// création du tas des labels
-		BinaryHeap <Label> tas = new BinaryHeap<>();
+    // Création des noeuds origine et destination avec leur labels
+    Node noeud_origine = data.getOrigin();
+    Label label_origine = labels[noeud_origine.getId()];
+    Node destination = data.getDestination();
+    Label label_destination = labels[destination.getId()];
 
-		// Création des noeuds origine et destination avec leur labels
-		Node noeud_origine = data.getOrigin();
-		Label label_origine = labels[noeud_origine.getId()];
-		Node Destination = data.getDestination();
-		Label label_destination = labels[Destination.getId()];
+    // insertion du noeud origine dans le tas
+    label_origine.setCoutRealise(0); // On initialise son coût à 0;
+    tas.insert(label_origine);
 
-		// insertion du noeud origine dans le tas
-		label_origine.setCoutRealise(0); // On initialise son cout à 0;
-		tas.insert(label_origine);
+    notifyOriginProcessed(data.getOrigin());
 
-		notifyOriginProcessed(data.getOrigin());
+    Label label_courant = null;
 
-		Label label_courant = null;
+    // Liste pour stocker les éléments retirés du tas
+    List<Label> removedElements = new ArrayList<>();
 
+    while (!label_destination.getMarque() && !tas.isEmpty()) {
 
-		
-		while (!label_destination.getMarque() && !tas.isEmpty()) {
+        label_courant = tas.deleteMin();
+        removedElements.add(label_courant);  // Ajouter l'élément retiré à la liste
 
-			
-			label_courant = tas.deleteMin();
+        // Afficher l'élément retiré et son coût
+        System.out.println("Retiré du tas: " + label_courant.getSommetCourant().getId() + " avec coût: " + label_courant.getCost());
 
-			// On marque le label extrait
-			label_courant.setMarque(false);
+        // On marque le label extrait
+        label_courant.setMarque(true);
 
-			/* Notify observers about the node being marked */
-			notifyNodeMarked(label_courant.getSommetCourant());
+        /* Notify observers about the node being marked */
+        notifyNodeMarked(label_courant.getSommetCourant());
 
-			// On crée une liste de successeurs du noeud courant pour simplifier leur Parcour
-		
-			List<Arc> successeurs = label_courant.getSommetCourant().getSuccessors();
+        // On crée une liste de successeurs du noeud courant pour simplifier leur Parcour
+        List<Arc> successeurs = label_courant.getSommetCourant().getSuccessors();
 
-			// Parcours de tous les successeurs du noeud courant
-			for (Arc arc_courant : successeurs) {
+        // Parcours de tous les successeurs du noeud courant
+        for (Arc arc_courant : successeurs) {
 
-				// Condition importante pour vérifier que l'arc en question est permis selon le mode de déplacement
-				if (data.isAllowed(arc_courant)) {
+            // Condition importante pour vérifier que l'arc en question est permis selon le mode de déplacement
+            if (data.isAllowed(arc_courant)) {
 
-					// déclaration du noeud destination de chaque arc
-					Label destination_iter = labels[arc_courant.getDestination().getId()];
+                // déclaration du noeud destination de chaque arc
+                Label destination_iter = labels[arc_courant.getDestination().getId()];
 
-					/* Notify observers about the node being reached */
-					notifyNodeReached(arc_courant.getDestination());
+                /* Notify observers about the node being reached */
+                notifyNodeReached(arc_courant.getDestination());
 
-					// Si le noeud destination de l'arc n'est pas marqué
-					if (!destination_iter.getMarque()) {
+                // Si le noeud destination de l'arc n'est pas marqué
+                if (!destination_iter.getMarque()) {
 
-						// dans le cas où le coût du noeud destination est plus grand que le coup du
-						// noeud courant + la longueur entre les deux noeuds:
+                    // dans le cas où le coût du noeud destination est plus grand que le coup du
+                    // noeud courant + la longueur entre les deux noeuds:
+                    if (destination_iter.getCost() > label_courant.getCost() + data.getCost(arc_courant)) {
 
-						if (destination_iter.getCost() > label_courant.getCost() + data.getCost(arc_courant)) {
+                        // si le noeud destination de l'arc est déjà dans le tas, on l'enlève pour l'ajouter à la fin quand il sera màj)
+                        try {
+                            tas.remove(destination_iter);
+                        } catch (ElementNotFoundException e) {
+                        }
 
-							// si le noeud destination de l'arc est déjà dans le tas, on l'enlève pour l'ajouter à la fin quand il sera màj)
-							
-							try {
-								tas.remove(destination_iter);
-							} catch (ElementNotFoundException e) {
-							}
+                        // on met à jour le coût du noeud destination de l'arc
+                        destination_iter.setCoutRealise(label_courant.getCost() + data.getCost(arc_courant));
+                        // on met à jour son père qui devient le noeud courant on met tout l'arc car c'est plus pratique)
+                        destination_iter.setPere(arc_courant);
+                        // on place le noeud destination de l'arc dans le tas
+                        tas.insert(destination_iter);
+                    }
+                }
+            }
+        }
+    }
 
-							// on met à jour le coût du noeud destination de l'arc
-							destination_iter.setCoutRealise(label_courant.getCost() + data.getCost(arc_courant));
-							// on met à jour son père qui devient le noeud courant on met tout l'arc car  c'est plus pratique)
-						
-							destination_iter.setPere(arc_courant);
-							// on place le noeud destination de l'arc dans le tas
-							tas.insert(destination_iter);
-							
+    // Afficher la liste des éléments retirés du tas dans l'ordre de retrait
+    System.out.println("Ordre de retrait des éléments du tas :");
+    for (Label label : removedElements) {
+        System.out.println("Noeud: " + label.getSommetCourant().getId() + ", Coût: " + label.getCost());
+    }
 
+    // On traite maintenant les cas restants où il n'y a pas de solution
 
-						}
-					}
-				}
-			}
-		}
+    /*  Si le sommet destination n'a pas de prédecesseur ou si celui-ci n'a pas été
+    marqué (l'un entraîne l'autre normalement),
+    la solution n'existe pas*/
+    if ((label_destination.getPere() == null && (data.getOrigin().compareTo(data.getDestination()) != 0))
+            || !label_destination.getMarque()) {
+        solution = new ShortestPathSolution(data, Status.INFEASIBLE);
+    }
+    // Sinon, on a trouvé la destination
+    else {
 
+        // User notification
+        // The destination has been found, notify the observers.
+        notifyDestinationReached(data.getDestination());
 
-		// On traite maintenant les cas restants où il n'y a pas de solution
+        // dans le cas oe le chemin est vide
+        if (data.getOrigin().compareTo(data.getDestination()) == 0) {
+            // solution
+            // System.out.println("Le chemin est vide") ;
+            solution = new ShortestPathSolution(data, Status.OPTIMAL, new Path(graph, data.getOrigin()));
 
-		/*  Si le sommet destination n'a pas de prédecesseur ou si celui-ci n'a pas été
-		marqué (l'un entraîne l'autre normalement),
-		la solution n'existe pas*/
-		if ((label_destination.getPere() == null && (data.getOrigin().compareTo(data.getDestination()) != 0))
-				|| ! label_destination.getMarque()) {
-			solution = new ShortestPathSolution(data, Status.INFEASIBLE);
-		}
-		// Sinon, on a trouvé la destination
-		else {
+        } else {
 
-			// User notification
-			// The destination has been found, notify the observers.
-			notifyDestinationReached(data.getDestination());
+            /*On reconstitue le chemin créé et on crée une liste contenant tous les arcs menants à la destination*/
+            ArrayList<Arc> arcs = new ArrayList<>();
+            /*On commence par la destination et en ajoute le père du noeud au fur et à mesure jusqu'à arriver au noeud origine 
+            en mettant à jour le label courant*/
+            while (!label_courant.equals(label_origine)) {
+                arcs.add(label_courant.getPere());
+                // maj du label courant
+                label_courant = labels[label_courant.getPere().getOrigin().getId()];
+            }
+            /* On inverse le tout pour avoir le chemin de l'origine à la destination et pas
+            l'inverse*/
+            Collections.reverse(arcs);
 
-			// dans le cas oe le chemin est vide
-			if (data.getOrigin().compareTo(data.getDestination()) == 0) {
-				// solution
-				// System.out.println("Le chemin est vide") ;
-				solution = new ShortestPathSolution(data, Status.OPTIMAL, new Path(graph, data.getOrigin()));
+            // Création de la solution finale à partir de la liste des arcs créée
+            Path chemin_final = new Path(graph, arcs);
 
-			} else {
+            // On teste si le chemin créé est valide avant de créer la solution finale
+            if (chemin_final.isValid()) {
 
-				/*On reconstitue le chemin créé et on crée une liste contenant tous les arcs menants à la destination*/
-				ArrayList<Arc> arcs = new ArrayList<>();
-                /*On commence par la destination et en ajoute le père du noeud au fur et à mesure jusqu'à arriver au noeud origine 
-				en mettant à jour le label courant*/
-				while (!label_courant.equals(label_origine)) {
-					arcs.add(label_courant.getPere());
-					// maj du label courant
-					label_courant = labels[label_courant.getPere().getOrigin().getId()];
-				}
-				/* On inverse le tout pour avoir le chemin de l'origine à la destination et pas
-				l'inverse*/
-				Collections.reverse(arcs);
+                // on crée la solution finale
+                solution = new ShortestPathSolution(data, Status.OPTIMAL, chemin_final);
 
-				// Création de la solution finale à partir de la liste des arcs créée
-				Path chemin_final = new Path(graph, arcs);
+            } else {
+                System.out.println("Le chemin n'est pas valide");
+            }
 
-				// On teste si le chemin créé est valide avant de créer la solution finale
-				if (chemin_final.isValid()) {
+        }
+    }
+    return solution;
+}
 
-					// on crée la solution finale
-					solution = new ShortestPathSolution(data, Status.OPTIMAL, chemin_final);
-
-				} else {
-					 System.out.println("Le chemin n'est pas valide") ;
-				}
-
-			}
-		}
-		return solution;
-	}
+	
 
     }
 

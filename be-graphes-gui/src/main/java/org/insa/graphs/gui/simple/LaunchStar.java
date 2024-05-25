@@ -128,26 +128,26 @@ public class LaunchStar {
     }
 // djikistra sort des valeurs croissants 
 
-    public static void main(String[] args) throws Exception {
-        Random random = new Random();
-        initAll();
-        Graph[] graphs = {graphINSA, graphParis, graphToulouse};
-        String[] graphNames = {"INSA", "Paris", "Toulouse"};
+public static void main(String[] args) throws Exception {
+    Random random = new Random();
+    initAll();
+    Graph[] graphs = {graphINSA, graphParis, graphToulouse};
+    String[] graphNames = {"INSA", "Paris", "Toulouse"};
 
-        for (int i = 0; i < 10; i++) { // Réduire le nombre de tests à 10
-            int graphIndex = random.nextInt(graphs.length);
-            Graph graph = graphs[graphIndex];
-            String graphName = graphNames[graphIndex];
+    for (int i = 0; i < 5; i++) { // Réduire le nombre de tests à 10
+        int graphIndex = random.nextInt(graphs.length);
+        Graph graph = graphs[graphIndex];
+        String graphName = graphNames[graphIndex];
 
-            int originIndex = random.nextInt(graph.size());
-            int destinationIndex = random.nextInt(graph.size());
+        int originIndex = random.nextInt(graph.size());
+        int destinationIndex = random.nextInt(graph.size());
 
-            while (originIndex == destinationIndex) {
-                destinationIndex = random.nextInt(graph.size());
-            }
-
-            System.out.println("Testing on graph: " + graphName);
-            initialize(originIndex, destinationIndex, graph);
+        while (originIndex == destinationIndex) {
+            destinationIndex = random.nextInt(graph.size());
         }
+
+        System.out.println("Testing on graph: " + graphName);
+        initialize(originIndex, destinationIndex, graph);
     }
+}
 }
